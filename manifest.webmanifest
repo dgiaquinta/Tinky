@@ -1,0 +1,21 @@
+{
+ "name": "Tinky",
+ "short_name": "Tinky",
+ "display": "standalone",
+ "start_url": "./",
+ "scope": "./",
+ "background_color": "#FAFBFC",
+ "theme_color": "#FFFFFF",
+ "icons": [
+  {
+   "src": "icona-180.png",
+   "sizes": "180x180",
+   "type": "image/png"
+  },
+  {
+   "src": "icona-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}
