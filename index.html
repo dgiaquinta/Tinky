@@ -472,7 +472,7 @@ box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);color:var(
   <div class="fr"><span>Ribilanciamento</span><div class="seg" id="rib"><button data-v="nessuno" class="on">mai</button><button data-v="banda10">banda 10%</button><button data-v="annuale">gennaio</button></div></div>
   <div class="fr"><span>Guida</span><div class="seg" style="grid-auto-flow:column"><button id="fgui" class="on" style="background:var(--carta);color:var(--blu)">avvia il tour</button><button id="fglo">glossario</button></div></div>
   <div class="fr"><span>Tema</span><div class="seg" id="tema"><button data-v="light">☀︎ chiaro</button><button data-v="dark">☾ scuro</button><button data-v="auto" class="on">auto</button></div></div>
-  <div class="ver" id="ver">versione 1.83 · 22/11/2026 · dati a ottobre 2026</div>
+  <div class="ver" id="ver">versione 1.84 · 22/11/2026 · dati a ottobre 2026</div>
   <div class="maniglia"></div>
 </div>
 <script>
@@ -868,7 +868,7 @@ function bearEp(){const key=[rkey(S.w),S.az,S.val].join("|");if(BCC[key])return 
 function bearEco(){const E=bearEp(),fp=x=>(x>0?"+":"")+f(x,0)+"%",md=a=>a.reduce((s,x)=>s+x,0)/a.length,T=BTXT();
   const AS2=[["az",AZN()],["fa","Fattori"],["tf","Trend foll."],["oro","Oro"],["bond","Treasury"],["cash","T-bill"]];
   let h=`<div class="rp" style="margin-bottom:6px">Ogni grande ribasso nasce in un contesto economico preciso, e il contesto decide quali investimenti proteggono. Classificando per crescita e inflazione i <b>25 bear market dal 1872</b> (cali dell'S&amp;P 500 di almeno il 20%) emergono sei situazioni ricorrenti.</div>
-  <div class="nota" style="margin-bottom:6px">Rendimenti medi dal massimo al minimo, reali e prima delle tasse; fra parentesi gli episodi con dati, quando mancano. <b>Il bear si misura sul prezzo</b> (almeno −20%): con i dividendi e la deflazione dell'Ottocento la perdita reale era spesso molto minore. In verde chi ha protetto di più, in rosso chi meno. Accanto a ogni tipo di crisi, il risultato medio del portafoglio; tocca per i dettagli.</div><div id="brg">`;
+  <div id="brg">`;
   const media={};
   for(const g of Object.keys(BCOL)){const x=E.filter(e=>e.rg===g),M={};for(const [k] of AS2){const v=x.map(e=>e.r[k]).filter(z=>z!=null);M[k]=[v.length?md(v):null,v.length];}media[g]=M;
     const vv=Object.values(M).map(z=>z[0]).filter(z=>z!=null),mx=Math.max(...vv),mn=Math.min(...vv);
@@ -889,7 +889,7 @@ function bearEco(){const E=bearEp(),fp=x=>(x>0?"+":"")+f(x,0)+"%",md=a=>a.reduce
   /* tutti i 25 episodi (utente 22/11, anteprima T3): sempre visibili, dal piu' recente, una riga per episodio; toccando si
      apre il dettaglio, uno alla volta (BAP: quello aperto, resta aperto ai ridisegni) */
   h+=`<h5 style="margin-top:22px">Tutti i 25 episodi</h5><div class="nota" style="margin:-4px 0 10px">Tocca un episodio per leggere cosa è successo.</div><div class="tlg">${Object.entries(BCOL).map(([k,c])=>`<span><i style="background:${c}"></i>${k}</span>`).join("")}</div>`+
-    `<div class="nota" style="margin:0 0 12px">La pastiglia del portafoglio è verde se ha perso almeno 10 punti meno dell'${AZN()}, gialla fra 3 e 10, rossa sotto.</div><div class="tl t3" id="btl">`+
+    `<div class="nota" style="margin:0 0 12px">La pastiglia del portafoglio è verde se ha perso almeno 10 punti meno dell'${AZN()}, gialla fra 3 e 10, rossa sotto. <b>Il bear si misura sul prezzo</b> (almeno −20%): con i dividendi e la deflazione dell'Ottocento la perdita reale era spesso molto minore.</div><div class="tl t3" id="btl">`+
     [...E].reverse().map(e=>{const [nm,ds]=BNOMI[+e.b.slice(0,4)],d=e.port-e.r.az,bd=DIF.filter(([k])=>e.r[k]!=null).sort((x,y)=>e.r[y[0]]-e.r[x[0]])[0],c=BCOL[e.rg],tn=d>=10?"v":d>=3?"g":"r";
       return `<div class="tli${BAP===e.a?" aperto":""}" data-a="${e.a}"><div class="dt"><b>${e.a.slice(0,4)}</b><small>${mt(e.a,e.b)} mesi</small></div><div class="md"><i style="background:${c}"></i></div><div class="tx">`+
         `<div class="rr"><b>${nm}</b><span class="pil ${tn}">${fp(e.port)}</span></div><span class="rg2" style="color:${c==="#7DB4E3"||c==="#F2B65A"?"var(--nota)":c}">${e.rg}</span>`+
@@ -1506,7 +1506,7 @@ tutto();
 /* app installata e versioni (utente 22/11): su GitHub Pages un service worker (sw.js, scritto da prepara_pages.py) tiene
    la pagina sul telefono, che si apre anche senza rete; a ogni apertura si legge versione.json e, se online c'e' una
    versione piu' nuova, compare la pastiglia per aggiornare. Altrove (anteprime locali) niente, salvo ?sw=1 per le prove. */
-const VNUM="1.83";
+const VNUM="1.84";
 (()=>{if(!(location.hostname.endsWith("github.io")||/[?&]sw=1/.test(location.search)))return;
   if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
   const b=document.getElementById("nuova");
