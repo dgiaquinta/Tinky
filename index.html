@@ -171,6 +171,10 @@ box-shadow:0 4px 16px rgba(0,0,0,.18);display:none;z-index:30}
 .riass .cambia{background:#fff;color:#0A87C8}
 #velo{position:fixed;left:0;right:0;bottom:0;top:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .35s;z-index:3}
 #velo.on{opacity:1;pointer-events:auto}
+.nuova{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translate(-50%,24px);opacity:0;
+transition:opacity .3s,transform .3s cubic-bezier(.3,.7,.2,1);z-index:20;border:0;border-radius:999px;background:#0A87C8;color:#fff;
+padding:9px 18px;font-family:inherit;font-size:13.5px;font-weight:600;white-space:nowrap;box-shadow:0 6px 18px rgba(16,24,40,.25);pointer-events:none}
+.nuova.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}.nuova.attesa{opacity:.6}
 /* impostazioni aperte (utente 22/11): su iPhone tirando la pagina verso il basso tutto si muoveva tranne il pannello
    (fisso); a pannello aperto la pagina non scorre e non rimbalza, scorre solo il pannello */
 html.bloccata,html.bloccata body{overflow:hidden;overscroll-behavior:none}
@@ -458,6 +462,7 @@ box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);color:var(
 <div id="tip"></div>
 <div id="tourvelo"></div><div id="tourhl"></div><div id="tourbox"></div><div id="gloss"></div>
 <div id="velo"></div>
+<button id="nuova" class="nuova">Nuova versione <b></b> · tocca per aggiornare</button>
 <div id="foglio">
   <div class="fr"><span>Azionario</span><div class="seg" id="az"><button data-v="w" class="on">MSCI World</button><button data-v="sp">S&amp;P 500</button></div></div>
   <div class="fr"><span>Valuta</span><div class="seg" id="val"><button data-v="eur" class="on">€</button><button data-v="usd">$</button></div></div>
@@ -467,7 +472,7 @@ box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);color:var(
   <div class="fr"><span>Ribilanciamento</span><div class="seg" id="rib"><button data-v="nessuno" class="on">mai</button><button data-v="banda10">banda 10%</button><button data-v="annuale">gennaio</button></div></div>
   <div class="fr"><span>Guida</span><div class="seg" style="grid-auto-flow:column"><button id="fgui" class="on" style="background:var(--carta);color:var(--blu)">avvia il tour</button><button id="fglo">glossario</button></div></div>
   <div class="fr"><span>Tema</span><div class="seg" id="tema"><button data-v="light">☀︎ chiaro</button><button data-v="dark">☾ scuro</button><button data-v="auto" class="on">auto</button></div></div>
-  <div class="ver" id="ver">versione 1.82 · 22/11/2026 · dati a ottobre 2026</div>
+  <div class="ver" id="ver">versione 1.83 · 22/11/2026 · dati a ottobre 2026</div>
   <div class="maniglia"></div>
 </div>
 <script>
@@ -1498,6 +1503,21 @@ segOn("tema",S.tema);segOn("az",S.az);
 azionario();{const p1=TUTTI.find(w=>ranghi(1)[rkey(w)]===1);S.w={...p1,mix:0};}
 S.cq=CQO(S.h);segOn("bcape",S.cq);   // all'apertura: periodi partiti col CAPE nel quarto di oggi (utente 20/11)
 tutto();
+/* app installata e versioni (utente 22/11): su GitHub Pages un service worker (sw.js, scritto da prepara_pages.py) tiene
+   la pagina sul telefono, che si apre anche senza rete; a ogni apertura si legge versione.json e, se online c'e' una
+   versione piu' nuova, compare la pastiglia per aggiornare. Altrove (anteprime locali) niente, salvo ?sw=1 per le prove. */
+const VNUM="1.83";
+(()=>{if(!(location.hostname.endsWith("github.io")||/[?&]sw=1/.test(location.search)))return;
+  if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+  const b=document.getElementById("nuova");
+  const prova=()=>fetch("versione.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{
+    if(j&&j.v&&j.v!==VNUM){b.querySelector("b").textContent=j.v;requestAnimationFrame(()=>b.classList.add("on"));}}).catch(()=>{});
+  prova();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")prova();});
+  b.onclick=async()=>{b.classList.add("attesa");
+    try{const r="serviceWorker" in navigator?await navigator.serviceWorker.getRegistration():null;
+      if(r){await r.update();const w=r.installing||r.waiting;
+        if(w)await new Promise(ok=>{if(w.state==="activated")return ok();w.addEventListener("statechange",()=>{if(w.state==="activated"||w.state==="redundant")ok();});setTimeout(ok,15000);});}}catch(e){}
+    location.reload();};})();
 </script>
 </body>
 </html>
