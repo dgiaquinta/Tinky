@@ -472,7 +472,7 @@ box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);color:var(
   <div class="fr"><span>Ribilanciamento</span><div class="seg" id="rib"><button data-v="nessuno" class="on">mai</button><button data-v="banda10">banda 10%</button><button data-v="annuale">gennaio</button></div></div>
   <div class="fr"><span>Guida</span><div class="seg" style="grid-auto-flow:column"><button id="fgui" class="on" style="background:var(--carta);color:var(--blu)">avvia il tour</button><button id="fglo">glossario</button></div></div>
   <div class="fr"><span>Tema</span><div class="seg" id="tema"><button data-v="light">☀︎ chiaro</button><button data-v="dark">☾ scuro</button><button data-v="auto" class="on">auto</button></div></div>
-  <div class="ver" id="ver">versione 1.86 · 22/11/2026 · dati a ottobre 2026</div>
+  <div class="ver" id="ver">versione 1.87 · 23/11/2026 · dati a ottobre 2026</div>
   <div class="maniglia"></div>
 </div>
 <script>
@@ -1088,12 +1088,18 @@ function percorso(){
   const W6={tf:0,oro:0,bond:0,cash:0,mix:40},P=[[S.w,"#0A87C8",0,nome(S.w)],[SP0,"#D64545",0,AZN()],[W6,"#1BAF7A",1,"60/40"]];
   const i0=S.p00v==="10"?N-121:I00,mesi=MOT.mesi.slice(i0),RS=P.map(p=>percorsoNetto(p[0])),ser=RS.map(x=>x.tr);
   const extra=(S.lista||[]).map(z=>percorsoNetto(z).tr);
-  const W=340,H=210,mL=40,mR=58,mT=8,mB=22,all=[...ser.flat(),...extra.flat()],y1=Math.max(...all)*100,y0=Math.min(...all)*100;
+  const W=340,H=210,mL=40,mR=58,mT=20,mB=22,all=[...ser.flat(),...extra.flat()],y1=Math.max(...all)*100,y0=Math.min(...all)*100;
   const X=i=>mL+i/(mesi.length-1)*(W-mL-mR),Y=v=>mT+(y1-v)/(y1-y0)*(H-mT-mB);
   let g="";const pa=y1-y0>300?100:y1-y0>120?50:20;
   for(let v=Math.ceil(y0/pa)*pa;v<=y1;v+=pa)g+=`<line x1="${mL}" x2="${W-mR}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(140,140,140,${v==100?.6:.18})" ${v==100?'stroke-dasharray="3 3"':''}/><text x="${mL-5}" y="${Y(v)+4}" text-anchor="end">${v}k</text>`;
   const anni=[...new Set(mesi.map(m=>+m.slice(0,4)))].filter(a=>S.p00v==="10"?a%2==0:a%5==0);
   for(const a of anni){const i=mesi.indexOf(a+"-01");if(i>=0)g+=`<text x="${X(i)}" y="${H-6}" text-anchor="middle">${a}</text>`;}
+  /* crisi (utente 23/11, variante B): i bear market dell'S&P 500 dentro la finestra, dal picco al minimo (BEC), come bande
+     rosse chiare a tutta altezza, col nome breve nella fascia sopra il grafico; nomi vicini scostati (Covid e 2022) */
+  {const ix=m=>mesi.indexOf(m),NB={"Bolla dot-com":"Dot-com","Inflazione e tassi":"2022"};let px=-99;
+   for(const [a,b] of BEC.filter(([a,b])=>b>=mesi[0])){const x0=X(Math.max(0,ix(a))),w=Math.max(X(ix(b))-x0,3),nm=BNOMI[+b.slice(0,4)][0];let xt=x0+w/2;
+     if(xt-px<30)xt=px+30;px=xt;
+     g+=`<rect x="${x0}" y="${mT}" width="${w}" height="${H-mT-mB}" fill="#D64545" opacity=".10"/><text x="${xt}" y="${mT-4}" text-anchor="middle" style="fill:#B03030;font-size:9px;font-weight:600">${NB[nm]||nm}</text>`;}}
   /* stile V3 (utente 20/11): curve morbide (media di 3 mesi, solo nel disegno), il portafoglio unica linea forte con l'area
      che sfuma, MSCI World e 60/40 sottili e tenui, valori finali in pastiglie colorate a destra */
   const lis=a=>a.map((v,i)=>i==0||i==a.length-1?v:(a[i-1]+v+a[i+1])/3),sl=ser.map(lis),PT=v=>v.map((z,i)=>[X(i),Y(z*100)]);
@@ -1506,7 +1512,7 @@ tutto();
 /* app installata e versioni (utente 22/11): su GitHub Pages un service worker (sw.js, scritto da prepara_pages.py) tiene
    la pagina sul telefono, che si apre anche senza rete; a ogni apertura si legge versione.json e, se online c'e' una
    versione piu' nuova, compare la pastiglia per aggiornare. Altrove (anteprime locali) niente, salvo ?sw=1 per le prove. */
-const VNUM="1.86";
+const VNUM="1.87";
 (()=>{if(!(location.hostname.endsWith("github.io")||/[?&]sw=1/.test(location.search)))return;
   if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
   const b=document.getElementById("nuova");
