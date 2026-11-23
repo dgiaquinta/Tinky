@@ -176,6 +176,9 @@ box-shadow:0 4px 16px rgba(0,0,0,.18);display:none;z-index:30}
 /* Drawdown, cosa aspettarsi (utente 23/11) */
 .za{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 4px;text-align:center}
 .za .n{font-size:24px;font-weight:600;line-height:1.2}.za .t{font-size:12px;color:var(--nota);line-height:1.3}
+.zth{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;font-size:12px;color:var(--nota);line-height:1.3;margin:6px 0 2px}
+.zth b{display:block;font-size:13px;color:var(--testo)}.za.zam{margin:2px 0}
+.zk{font-size:12.5px;font-weight:700;margin:10px 0 0;display:flex;align-items:center;gap:6px}.zk i{width:10px;height:10px;border-radius:3px;display:inline-block}
 .zd{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--fil);padding-top:8px;margin-top:8px;font-size:13.5px}.zd b{font-size:18px}
 .zl{margin:8px 0 6px;padding-left:16px;font-size:13px;line-height:1.5}.zl>li{margin-bottom:6px}
 .zl ul{margin:2px 0 0;padding-left:14px;list-style:circle}.zl ul li{margin:4px 0}   /* pastiglie non appiccicate (utente 23/11) */.zl .pil{font-size:12px;padding:1px 7px}
@@ -461,6 +464,12 @@ box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);color:var(
   <h5 style="margin-top:24px">Nel quarto peggiore</h5>
   <div class="nota" style="margin:-4px 0 10px">I 500 futuri su 2.000 che finiscono peggio.</div>
   <div class="tq" id="qmc"></div>
+  <h5 style="margin-top:24px">Drawdown, cosa aspettarsi</h5>
+  <div class="zth"><span><b>correzioni</b>tra −10 e −20%</span><span><b>bear</b>tra −20 e −40%</span><span><b>crollo</b>oltre −40%</span></div>
+  <div class="zk"><i style="background:#8A919B"></i><span class="azn">MSCI World</span></div><div class="za zam" id="dm1"></div>
+  <div class="zk"><i style="background:#0A87C8"></i><span id="dmn"></span></div><div class="za zam" id="dm2"></div>
+  <div class="zd"><span>Calo massimo tipico</span><span id="dm3"></span></div>
+  <div class="nota" style="margin-top:6px" id="dm4"></div>
   <div class="nota" style="margin-top:12px">Valori reali, netti (euro di oggi, dopo le tasse).</div>
 </div>
 
@@ -482,7 +491,7 @@ box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);color:var(
   <div class="fr"><span>Ribilanciamento</span><div class="seg" id="rib"><button data-v="nessuno" class="on">mai</button><button data-v="banda10">banda 10%</button><button data-v="annuale">gennaio</button></div></div>
   <div class="fr"><span>Guida</span><div class="seg" style="grid-auto-flow:column"><button id="fgui" class="on" style="background:var(--carta);color:var(--blu)">avvia il tour</button><button id="fglo">glossario</button></div></div>
   <div class="fr"><span>Tema</span><div class="seg" id="tema"><button data-v="light">☀︎ chiaro</button><button data-v="dark">☾ scuro</button><button data-v="auto" class="on">auto</button></div></div>
-  <div class="ver" id="ver">versione 1.90 · 23/11/2026 · dati a ottobre 2026</div>
+  <div class="ver" id="ver">versione 1.91 · 23/11/2026 · dati a ottobre 2026</div>
   <div class="maniglia"></div>
 </div>
 <script>
@@ -1230,6 +1239,17 @@ function mc(){
     tqr("Drawdown mediano","",q(da,.5),q(db,.5),f(q(da,.5),1)+"%",f(q(db,.5),1)+"%",.5)+
     tqr("Perde potere d'acquisto","",perdeS,perde,f(perde,1)+"%",f(perdeS,1)+"%",.3)+
     tqr("Batte l'"+AZN(),"",batte,50,Math.round(batte)+"%","—",-1e9).replace(/qv pil (v|r|n0)/,"qv pil "+(batte>=50?"v":"g"));
+  /* drawdown, cosa aspettarsi (utente 23/11, anteprima A1): gli stessi conteggi della carta delle Lezioni (cali con filtro
+     del 10%: correzioni, bear, quota di futuri con un crollo; calo massimo mediano) sui futuri simulati, azionario sopra e
+     allocazione sotto. Nel Monte Carlo l'azionario torna vicino alla storia (10 anni, CAPE di oggi: 2,2 / 1,3 / 1 su 3) */
+  {const sw=x=>{const ev=[];let up=true,pk=0,tg=0;for(let t=1;t<x.length;t++){if(up){if(x[t]>x[pk])pk=t;else if(x[t]<=x[pk]*.9){up=false;tg=t;}}
+       else{if(x[t]<x[tg])tg=t;else if(x[t]>=x[tg]*1.1){ev.push(x[tg]/x[pk]-1);up=true;pk=t;}}}if(!up)ev.push(x[tg]/x[pk]-1);return ev;};
+   const cali=arr=>{let c=0,br=0,k=0;for(const p of arr){const e=sw(p.tr);c+=e.filter(d=>d>-.2).length;br+=e.filter(d=>d<=-.2&&d>-.4).length;if(e.some(d=>d<=-.4))k++;}
+       return [f(c/arr.length,1),f(br/arr.length,1),k/arr.length<.005?"mai":"1 su "+Math.round(arr.length/k)];};
+   const riga=(v,g)=>v.map(z=>`<div><div class="n"${g?' style="color:var(--nota)"':""}>${z}</div></div>`).join("");
+   document.getElementById("dm1").innerHTML=riga(cali(b),1);document.getElementById("dm2").innerHTML=riga(cali(a));document.getElementById("dmn").textContent=nome(S.w);
+   document.getElementById("dm3").innerHTML=`<span class="nota">${AZN()} −${f(-q(db,.5),0)}% ·</span> <b>−${f(-q(da,.5),0)}%</b>`;
+   document.getElementById("dm4").textContent=`In ${S.h} anni, nei futuri simulati.`;}
 }
 function segOn(id,v){document.querySelectorAll(`#${id} button`).forEach(b=>b.classList.toggle("on",b.dataset.v==v));linguette();}
 const foglio=on=>{document.getElementById("bimp")&&document.getElementById("bimp").classList.toggle("aperto",on);const hb=document.querySelector(".banda").offsetHeight;document.getElementById("foglio").style.top=hb+"px";document.getElementById("velo").style.top=hb+"px";document.getElementById("foglio").classList.toggle("on",on);document.getElementById("velo").classList.toggle("on",on);document.documentElement.classList.toggle("bloccata",on);};
@@ -1543,7 +1563,7 @@ tutto();
 /* app installata e versioni (utente 22/11): su GitHub Pages un service worker (sw.js, scritto da prepara_pages.py) tiene
    la pagina sul telefono, che si apre anche senza rete; a ogni apertura si legge versione.json e, se online c'e' una
    versione piu' nuova, compare la pastiglia per aggiornare. Altrove (anteprime locali) niente, salvo ?sw=1 per le prove. */
-const VNUM="1.90";
+const VNUM="1.91";
 (()=>{if(!(location.hostname.endsWith("github.io")||/[?&]sw=1/.test(location.search)))return;
   if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
   const b=document.getElementById("nuova");
