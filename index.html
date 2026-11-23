@@ -171,6 +171,9 @@ box-shadow:0 4px 16px rgba(0,0,0,.18);display:none;z-index:30}
 .riass .cambia{background:#fff;color:#0A87C8}
 #velo{position:fixed;left:0;right:0;bottom:0;top:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .35s;z-index:3}
 #velo.on{opacity:1;pointer-events:auto}
+/* Periodo per periodo (utente 23/11): legenda delle bande e sintesi a punti sotto il grafico */
+.zlb{margin:4px 0 2px}.zl{margin:8px 0 6px;padding-left:16px;font-size:13px;line-height:1.5}.zl>li{margin-bottom:6px}
+.zl ul{margin:2px 0 0;padding-left:14px;list-style:circle}.zl .pil{font-size:12px;padding:1px 7px}
 .nuova{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translate(-50%,24px);opacity:0;
 transition:opacity .3s,transform .3s cubic-bezier(.3,.7,.2,1);z-index:20;border:0;border-radius:999px;background:#0A87C8;color:#fff;
 padding:9px 18px;font-family:inherit;font-size:13.5px;font-weight:600;white-space:nowrap;box-shadow:0 6px 18px rgba(16,24,40,.25);pointer-events:none}
@@ -427,6 +430,8 @@ box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);color:var(
   <div class="seg" id="finv"><button data-v="d" class="on">Differenza</button><button data-v="p">Percorso</button></div>
   <div class="leg2" id="lfin" style="margin:2px 0 6px"></div>
   <svg id="gfin" class="gs" viewBox="0 0 340 190" width="100%"></svg>
+  <div class="leg2 zlb"><span><span class="sq" style="background:rgba(27,175,122,.28)"></span>Periodo con crollo oltre il −45%, meglio</span><span><span class="sq" style="background:rgba(214,69,69,.28)"></span>peggio</span></div>
+  <div id="sfin"></div>
   <div class="nota" id="nfinv"></div>
 </div>
 
@@ -472,7 +477,7 @@ box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);color:var(
   <div class="fr"><span>Ribilanciamento</span><div class="seg" id="rib"><button data-v="nessuno" class="on">mai</button><button data-v="banda10">banda 10%</button><button data-v="annuale">gennaio</button></div></div>
   <div class="fr"><span>Guida</span><div class="seg" style="grid-auto-flow:column"><button id="fgui" class="on" style="background:var(--carta);color:var(--blu)">avvia il tour</button><button id="fglo">glossario</button></div></div>
   <div class="fr"><span>Tema</span><div class="seg" id="tema"><button data-v="light">☀︎ chiaro</button><button data-v="dark">☾ scuro</button><button data-v="auto" class="on">auto</button></div></div>
-  <div class="ver" id="ver">versione 1.87 · 23/11/2026 · dati a ottobre 2026</div>
+  <div class="ver" id="ver">versione 1.88 · 23/11/2026 · dati a ottobre 2026</div>
   <div class="maniglia"></div>
 </div>
 <script>
@@ -988,7 +993,7 @@ function righeConfronto(x){
 }
 function boxplot(x,s){
   const R=righeConfronto(x),vs={I:s.irr,O:s.o2,D:s.dd};
-  document.getElementById("nbox").innerHTML="Scatola: metà centrale dei periodi; baffi fino a 1,5 volte la scatola, oltre i punti; barretta: mediana; rombo e numero: media (per rendimento/drawdown il rendimento medio sul drawdown medio), verde se meglio dell'"+AZN()+". A destra è meglio. Tocca una riga.";
+  document.getElementById("nbox").innerHTML="Scatola: metà centrale dei periodi; baffi fino a 1,5 volte la scatola, oltre i punti; barretta: mediana; rombo e numero: media (per rendimento/drawdown il rendimento medio sul drawdown medio), verde se meglio dell'"+AZN()+". A destra è meglio.";
   let h="";
   for(const k of ["I","O","D"]){const [tit,nd]=MET[k];
     const sts=R.map(r=>{const v=[...r.z[k]].sort((a,b)=>a-b),q1=q(v,.25),q3=q(v,.75),iq=q3-q1,lo=Math.min(...v.filter(z=>z>=q1-1.5*iq)),hi=Math.max(...v.filter(z=>z<=q3+1.5*iq));
@@ -1035,6 +1040,17 @@ function grafFin(x,s){
       else g+=rb(x0,0,(p>=0)===(s0>=0)?p:0,"#B9BEC6","g"+i)+rb(x0,p,s0,"#D64545","c"+i);}
     else g+=rb(x0,0,z[1],z[1]>=0?"#1BAF7A":"#D64545","c"+i,".8");   // differenza dallo zero
     g+=`<rect x="${x0-bw/2}" y="${mT}" width="${bw}" height="${H-mT-mB}" fill="transparent" data-t="${TIP("Partenza "+Math.floor(z[0]),[["portafoglio",f(z[2])+"%"],[AZN(),f(z[3])+"%"],["differenza",SEG(z[1])]],"",S.h+" anni, rendimento annuo")}"/>`;});
+  /* crolli (utente 23/11): bande sui periodi con dentro un bear oltre il -45% nel prezzo (picco e minimo nel periodo),
+     verdi se nel periodo il portafoglio ha fatto meglio dell'azionario, rosse se no; sotto, quante crisi ha attutito
+     (almeno 3 punti di perdita in meno) e il costo dell'assicurazione nei periodi senza grandi crolli */
+  {const PA=DATI.meta.partenze[String(S.h)].filter((_,i)=>m[i]),mm=t=>+t.slice(0,4)*12+ +t.slice(5,7)-1,BE=bearEp();
+   const CR=PA.map(p=>BEC.some(([a,b])=>BPZ[a]<=-45&&mm(a)>=mm(p)&&mm(b)<=mm(p)+12*S.h));
+   CR.forEach((c,i)=>{if(c)g=`<rect x="${X(i)-bw/2}" y="${mT}" width="${bw}" height="${H-mT-mB}" fill="${w[i][1]>=0?"#1BAF7A":"#D64545"}" opacity=".13"/>`+g;});
+   const b=w.filter((_,i)=>!CR[i]),mb=b.reduce((s,q)=>s+q[1],0)/b.length;
+   const pr=sg=>{const d=BE.filter(z=>BPZ[z.a]<=sg).map(z=>z.port-z.r.az),k=d.filter(x=>x>=3).length;
+     return `<li>oltre il ${f(sg,0)}%: <span class="pil ${k===d.length?"v":"g"}">${k} su ${d.length}</span> di <b>${f(d.reduce((s,x)=>s+x,0)/d.length,0)} punti</b> in media</li>`;};
+   document.getElementById("sfin").innerHTML=`<ul class="zl"><li><b>Nei crolli perde meno dell'${AZN()}</b>:<ul>${pr(-45)+pr(-30)+pr(-20)}</ul></li>`+
+     `<li><b>Costo dell'assicurazione</b>, negli altri ${b.length} periodi: <span class="pil ${mb<0?"r":"n0"}">${fs(mb)} l'anno</span></li></ul>`;}
   const pos=w.filter(z=>z[1]>=0).length;
   const elf=document.getElementById("gfin");animaSvg(elf,g);
   const tipf=i=>TIP("Partenza "+Math.floor(w[i][0]),[["portafoglio",f(w[i][2])+"%"],[AZN(),f(w[i][3])+"%"],["differenza",SEG(w[i][1])]],"",S.h+" anni, rendimento annuo");
@@ -1512,7 +1528,7 @@ tutto();
 /* app installata e versioni (utente 22/11): su GitHub Pages un service worker (sw.js, scritto da prepara_pages.py) tiene
    la pagina sul telefono, che si apre anche senza rete; a ogni apertura si legge versione.json e, se online c'e' una
    versione piu' nuova, compare la pastiglia per aggiornare. Altrove (anteprime locali) niente, salvo ?sw=1 per le prove. */
-const VNUM="1.87";
+const VNUM="1.88";
 (()=>{if(!(location.hostname.endsWith("github.io")||/[?&]sw=1/.test(location.search)))return;
   if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
   const b=document.getElementById("nuova");
